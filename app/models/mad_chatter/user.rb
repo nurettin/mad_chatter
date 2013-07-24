@@ -1,30 +1,35 @@
 require 'bcrypt'
 
 module MadChatter
-  class User < ActiveRecord::Base
-    attr_accessible :first_name, :last_name, :username, :password, :password_confirmation
-    validates :username, presence: true, uniqueness: true
-    validates :password, presence: true, confirmation: true
-
-    has_many :rooms
-    has_many :messages
-
-    include BCrypt
-
-    def password
-      @password ||= Password.new(encrypted_password)
+  if defined?(::User)
+    class User< ::User
     end
+  else
+    class User < ActiveRecord::Base
+      attr_accessible :first_name, :last_name, :username, :password, :password_confirmation
+      validates :username, presence: true, uniqueness: true
+      validates :password, presence: true, confirmation: true
 
-    def password=(new_password)
-      @password = Password.create(new_password)
-      self.encrypted_password = @password
-    end
+      has_many :rooms
+      has_many :messages
 
-    def self.authenticate(username, password)
-      if user = find_by_username(username)
-        user if user.password == password
+      include BCrypt
+
+      def password
+        @password ||= Password.new(encrypted_password)
       end
-    end
 
+      def password=(new_password)
+        @password = Password.create(new_password)
+        self.encrypted_password = @password
+      end
+
+      def self.authenticate(username, password)
+        if user = find_by_username(username)
+          user if user.password == password
+        end
+      end
+
+    end
   end
 end
